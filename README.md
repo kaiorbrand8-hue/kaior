@@ -40,6 +40,37 @@ npm run dev                 # http://localhost:3000
 **Admin login**: `admin@kaior.com` / `Admin@12345` (set in `backend/.env`,
 change before going live).
 
+## Deployment
+
+Both `frontend` and `backend` deploy as **separate Vercel projects** from the
+same GitHub repo (Root Directory set to `frontend` and `backend`
+respectively) — no other host needed, and no credit card required on
+Vercel's free Hobby tier.
+
+- `backend/src/app.js` holds the Express app (routes/middleware) with no
+  `listen()` call. `backend/src/server.js` is the local-dev entrypoint
+  (imports `app.js`, connects to Mongo, calls `.listen()`).
+  `backend/api/[...path].js` is the Vercel entrypoint: same `app.js`, wrapped
+  in a handler that lazily connects to MongoDB once and reuses that
+  connection across warm invocations. Vercel's file-based routing maps every
+  `/api/*` request straight to it — no `vercel.json` needed.
+- Database: MongoDB Atlas (the free M0 tier). If `mongodb+srv://` connection
+  fails to resolve (some networks block DNS SRV lookups), use the equivalent
+  non-SRV `mongodb://host1,host2,host3/...` form instead — get the three
+  shard hostnames and `replicaSet` name via `nslookup -type=SRV` /
+  `-type=TXT` on the cluster hostname.
+- Image uploads go straight to Cloudinary from the backend (see
+  `CLOUDINARY_*` env vars below) — the frontend uploads **one file per
+  request** specifically to stay under the ~4.5MB request body cap Vercel
+  enforces on Node serverless functions.
+- Required env vars on the backend Vercel project: `MONGO_URI`, `JWT_SECRET`,
+  `JWT_EXPIRES_IN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `CLOUDINARY_CLOUD_NAME`,
+  `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLIENT_URL` (the deployed
+  frontend's URL, for CORS).
+- Required env vars on the frontend Vercel project: `NEXT_PUBLIC_API_URL`
+  (the deployed backend's URL + `/api`), plus the `NEXT_PUBLIC_*` social
+  links from `.env.local`.
+
 ## Arabic / English
 
 The storefront has an AR/EN toggle in the navbar (top right). It's a

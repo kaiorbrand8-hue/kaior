@@ -12,10 +12,13 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
+// Kept comfortably under the ~4.5MB request body cap that serverless
+// hosts (Vercel) enforce on Node functions. The frontend uploads one file
+// per request, so this is a per-file, not a per-batch, limit.
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024, files: 8 },
+  limits: { fileSize: 4 * 1024 * 1024, files: 8 },
 });
 
 module.exports = upload;

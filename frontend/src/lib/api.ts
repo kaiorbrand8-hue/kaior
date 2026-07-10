@@ -208,9 +208,12 @@ export const updateSiteSettings = (payload: Partial<SiteSettings>) =>
   apiFetch<SiteSettings>("/settings", { method: "PUT", body: JSON.stringify(payload), auth: true });
 
 // ---- Uploads ----
-export async function uploadImages(files: File[]): Promise<string[]> {
+// One file per request — keeps each request well under the ~4.5MB body cap
+// that serverless hosts (Vercel) enforce, regardless of how many files the
+// admin selects at once.
+async function uploadSingleImage(file: File): Promise<string> {
   const formData = new FormData();
-  files.forEach((file) => formData.append("images", file));
+  formData.append("images", file);
 
   const token = getToken();
   const res = await fetch(`${API_URL}/uploads`, {
@@ -223,8 +226,16 @@ export async function uploadImages(files: File[]): Promise<string[]> {
   const data = isJson ? await res.json() : null;
 
   if (!res.ok) {
-    throw new ApiError(data?.message || "Failed to upload images", res.status);
+    throw new ApiError(data?.message || "Failed to upload image", res.status);
   }
 
-  return data.urls as string[];
+  return (data.urls as string[])[0];
+}
+
+export async function uploadImages(files: File[]): Promise<string[]> {
+  const urls: string[] = [];
+  for (const file of files) {
+    urls.push(await uploadSingleImage(file));
+  }
+  return urls;
 }
