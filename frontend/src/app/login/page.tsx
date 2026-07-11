@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ApiError } from "@/lib/api";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
+import type { User } from "@/lib/types";
 
 function LoginForm() {
   const router = useRouter();
@@ -31,6 +33,10 @@ function LoginForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = (user: User) => {
+    router.push(user.role === "admin" ? "/admin" : redirect);
   };
 
   return (
@@ -74,6 +80,14 @@ function LoginForm() {
           {loading ? t("auth.loggingIn") : t("auth.login")}
         </button>
       </form>
+
+      <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-charcoal/40">
+        <div className="h-px flex-1 bg-navy-900/10" />
+        or
+        <div className="h-px flex-1 bg-navy-900/10" />
+      </div>
+
+      <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
 
       <p className="mt-6 text-center text-sm text-charcoal/60">
         {t("auth.noAccount")}{" "}

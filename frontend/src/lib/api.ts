@@ -142,6 +142,8 @@ export const registerUser = (payload: { name: string; email: string; password: s
   apiFetch<User>("/auth/register", { method: "POST", body: JSON.stringify(payload) });
 export const loginUser = (payload: { email: string; password: string }) =>
   apiFetch<User>("/auth/login", { method: "POST", body: JSON.stringify(payload) });
+export const googleLogin = (credential: string) =>
+  apiFetch<User>("/auth/google", { method: "POST", body: JSON.stringify({ credential }) });
 export const getMe = () => apiFetch<User>("/auth/me", { auth: true });
 export const updateMe = (payload: Partial<User> & { password?: string }) =>
   apiFetch<User>("/auth/me", { method: "PUT", body: JSON.stringify(payload), auth: true });

@@ -94,7 +94,13 @@ the text flashes, not the layout).
 - Shop page with filters (category, size, sort) + pagination, search
 - Product detail page with gallery, color/size selection, add to cart
 - Cart (localStorage) + checkout (COD) + order confirmation
-- Customer accounts: register/login (JWT), order history
+- Customer accounts: register/login (JWT) or **Sign in with Google**, plus
+  order history. Google sign-in needs a Google OAuth 2.0 Web Client ID (from
+  https://console.cloud.google.com/apis/credentials, Authorized JavaScript
+  origins = your site's URL(s)) set as `GOOGLE_CLIENT_ID` on the backend and
+  `NEXT_PUBLIC_GOOGLE_CLIENT_ID` on the frontend (same value). The backend
+  verifies the Google ID token server-side and links/creates the account by
+  email; if unset, the Google button just doesn't render.
 - Admin dashboard: stats, product CRUD (with variant/stock table), category
   CRUD, order management (status updates)
 - Admin image upload: product/category/homepage images are uploaded from disk

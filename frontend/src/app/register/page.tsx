@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ApiError } from "@/lib/api";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -96,6 +97,14 @@ export default function RegisterPage() {
           {loading ? t("auth.creating") : t("auth.createAccount")}
         </button>
       </form>
+
+      <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-charcoal/40">
+        <div className="h-px flex-1 bg-navy-900/10" />
+        or
+        <div className="h-px flex-1 bg-navy-900/10" />
+      </div>
+
+      <GoogleSignInButton onSuccess={() => router.push("/account")} onError={setError} />
 
       <p className="mt-6 text-center text-sm text-charcoal/60">
         {t("auth.alreadyHaveAccount")}{" "}

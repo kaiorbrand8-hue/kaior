@@ -25,7 +25,9 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: [true, 'Password is required'], minlength: 6 },
+    // Not required: users who sign up via Google have no password of their own.
+    password: { type: String, minlength: 6 },
+    googleId: { type: String, unique: true, sparse: true },
     phone: { type: String, trim: true },
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
     addresses: [addressSchema],
@@ -34,13 +36,14 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function hashPassword(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
 userSchema.methods.matchPassword = function matchPassword(enteredPassword) {
+  if (!this.password) return Promise.resolve(false);
   return bcrypt.compare(enteredPassword, this.password);
 };
 

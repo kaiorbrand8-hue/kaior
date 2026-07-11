@@ -1,6 +1,9 @@
 const asyncHandler = require('express-async-handler');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const sanitizeUser = (user) => ({
   _id: user._id,
@@ -50,6 +53,62 @@ const loginUser = asyncHandler(async (req, res) => {
   });
 });
 
+// @route POST /api/auth/google
+const googleAuth = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    res.status(400);
+    throw new Error('Missing Google credential');
+  }
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    res.status(500);
+    throw new Error('Google sign-in is not configured on the server');
+  }
+
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch (err) {
+    res.status(401);
+    throw new Error('Invalid Google credential');
+  }
+
+  if (!payload?.email || !payload.email_verified) {
+    res.status(401);
+    throw new Error('Google account email is not verified');
+  }
+
+  let user = await User.findOne({ googleId: payload.sub });
+
+  if (!user) {
+    user = await User.findOne({ email: payload.email.toLowerCase() });
+    if (user) {
+      // Existing email/password account signing in with Google for the first time.
+      user.googleId = payload.sub;
+      await user.save();
+    }
+  }
+
+  if (!user) {
+    user = await User.create({
+      name: payload.name || payload.email.split('@')[0],
+      email: payload.email,
+      googleId: payload.sub,
+    });
+  }
+
+  res.json({
+    ...sanitizeUser(user),
+    token: generateToken(user._id),
+  });
+});
+
 // @route GET /api/auth/me
 const getMe = asyncHandler(async (req, res) => {
   res.json(sanitizeUser(req.user));
@@ -81,4 +140,4 @@ const addAddress = asyncHandler(async (req, res) => {
   res.status(201).json(user.addresses);
 });
 
-module.exports = { registerUser, loginUser, getMe, updateMe, addAddress };
+module.exports = { registerUser, loginUser, googleAuth, getMe, updateMe, addAddress };
