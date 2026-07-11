@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, Cairo } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/context/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SocialHub from "@/components/SocialHub";
+import PwaRegister from "@/components/PwaRegister";
 import { getCategories } from "@/lib/api";
 
 const playfair = Playfair_Display({
@@ -28,6 +29,14 @@ export const metadata: Metadata = {
   title: "KAIOR — Men's Wear",
   description:
     "KAIOR Men's Wear — tailored, timeless menswear essentials. Sharp fits, premium fabrics, effortless elegance.",
+  appleWebApp: {
+    title: "KAIOR",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0A0E27",
 };
 
 // Runs before hydration so a returning Arabic-preference visitor doesn't see
@@ -65,6 +74,7 @@ export default async function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer categories={categories} />
           <SocialHub />
+          <PwaRegister />
         </Providers>
       </body>
     </html>
