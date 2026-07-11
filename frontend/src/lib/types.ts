@@ -95,6 +95,16 @@ export type User = {
   token?: string;
 };
 
+export type AdminUserEntry = {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: "customer" | "admin";
+  googleId?: string;
+  createdAt: string;
+};
+
 export type CartItem = {
   productId: string;
   slug: string;

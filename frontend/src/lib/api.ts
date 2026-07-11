@@ -1,6 +1,7 @@
 import type {
   AdminReviewEntry,
   AdminStats,
+  AdminUserEntry,
   Category,
   Order,
   PaginatedProducts,
@@ -179,6 +180,18 @@ export const updateOrderStatus = (id: string, status: string) =>
 
 // ---- Admin ----
 export const getAdminStats = () => apiFetch<AdminStats>("/admin/stats", { auth: true });
+
+export const getUsers = (query: { keyword?: string; page?: number; limit?: number } = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") params.set(key, String(value));
+  });
+  const qs = params.toString();
+  return apiFetch<{ items: AdminUserEntry[]; page: number; pages: number; total: number }>(
+    `/admin/users${qs ? `?${qs}` : ""}`,
+    { auth: true }
+  );
+};
 
 // ---- Admin: Review Moderation ----
 export const getAllReviews = (query: { status?: string; page?: number; limit?: number } = {}) => {

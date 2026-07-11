@@ -102,7 +102,9 @@ the text flashes, not the layout).
   verifies the Google ID token server-side and links/creates the account by
   email; if unset, the Google button just doesn't render.
 - Admin dashboard: stats, product CRUD (with variant/stock table), category
-  CRUD, order management (status updates)
+  CRUD, order management (status updates), customer list (`/admin/customers`
+  — searchable by name/email/phone, shows whether each account signed up via
+  email or Google)
 - Admin image upload: product/category/homepage images are uploaded from disk
   (not pasted as URLs) and stored on **Cloudinary** — set
   `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` in
