@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAdminStats } from "@/lib/api";
+import DashboardCharts from "@/components/admin/DashboardCharts";
 import type { AdminStats } from "@/lib/types";
 
 const CARDS: { key: keyof AdminStats; label: string; href?: string; format?: (v: number) => string }[] = [
@@ -37,7 +38,7 @@ export default function AdminDashboard() {
             <Link
               key={card.key}
               href={card.href}
-              className="border border-navy-900/10 bg-cream p-5 hover:border-gold-500"
+              className="border border-navy-900/10 bg-cream p-5 transition-colors hover:border-gold-500"
             >
               {content}
             </Link>
@@ -48,6 +49,8 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      <DashboardCharts />
     </div>
   );
 }

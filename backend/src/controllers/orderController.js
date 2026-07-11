@@ -78,7 +78,13 @@ const getOrderById = asyncHandler(async (req, res) => {
 const getAllOrders = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
   const filter = {};
-  if (status) filter.status = status;
+  if (status) {
+    filter.status = status;
+  } else {
+    // Default view hides cancelled orders so they don't clutter the active
+    // list; pick "Cancelled" from the status filter to see them.
+    filter.status = { $ne: 'cancelled' };
+  }
 
   const pageNum = Math.max(Number(page), 1);
   const limitNum = Math.min(Math.max(Number(limit), 1), 100);

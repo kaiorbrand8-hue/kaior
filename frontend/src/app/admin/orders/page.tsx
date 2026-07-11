@@ -27,6 +27,14 @@ export default function AdminOrdersPage() {
     load();
   };
 
+  const handleCancel = async (order: Order) => {
+    if (!confirm(`Cancel order ${order.orderNumber}? It will be removed from the active list.`)) {
+      return;
+    }
+    await updateOrderStatus(order._id, "cancelled");
+    load();
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -36,7 +44,7 @@ export default function AdminOrdersPage() {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="border border-navy-900/20 px-3 py-2 text-sm"
         >
-          <option value="">All statuses</option>
+          <option value="">Active (hides cancelled)</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -94,14 +102,24 @@ export default function AdminOrdersPage() {
                   </p>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between">
-                  <Link
-                    href={`/admin/orders/${order._id}/waybill`}
-                    target="_blank"
-                    className="border border-navy-900 px-4 py-1.5 text-xs uppercase tracking-widest-lg text-navy-900 hover:bg-navy-900 hover:text-cream"
-                  >
-                    Print Waybill
-                  </Link>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex gap-3">
+                    <Link
+                      href={`/admin/orders/${order._id}/waybill`}
+                      target="_blank"
+                      className="border border-navy-900 px-4 py-1.5 text-xs uppercase tracking-widest-lg text-navy-900 hover:bg-navy-900 hover:text-cream"
+                    >
+                      Print Waybill
+                    </Link>
+                    {order.status !== "cancelled" && order.status !== "delivered" && (
+                      <button
+                        onClick={() => handleCancel(order)}
+                        className="border border-red-600 px-4 py-1.5 text-xs uppercase tracking-widest-lg text-red-600 hover:bg-red-600 hover:text-white"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
                   <div className="text-sm font-medium text-navy-900">
                     Total: EGP {order.totalPrice.toLocaleString()} (COD)
                   </div>

@@ -61,4 +61,62 @@ const getUsers = asyncHandler(async (req, res) => {
   res.json({ items, page: pageNum, pages: Math.ceil(total / limitNum) || 1, total });
 });
 
-module.exports = { getStats, getUsers };
+// @route GET /api/admin/stats/charts
+const getChartData = asyncHandler(async (req, res) => {
+  const days = Math.min(Math.max(Number(req.query.days) || 30, 7), 90);
+  const since = new Date();
+  since.setDate(since.getDate() - (days - 1));
+  since.setHours(0, 0, 0, 0);
+
+  const [revenueTrendRaw, statusBreakdownRaw, topProductsRaw] = await Promise.all([
+    Order.aggregate([
+      { $match: { status: { $ne: 'cancelled' }, createdAt: { $gte: since } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          revenue: { $sum: '$totalPrice' },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]),
+    Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+    Order.aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.product',
+          name: { $first: '$items.name' },
+          quantitySold: { $sum: '$items.quantity' },
+          revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+        },
+      },
+      { $sort: { quantitySold: -1 } },
+      { $limit: 5 },
+    ]),
+  ]);
+
+  // Fill in the days with no orders so the trend line has no gaps.
+  const revenueByDate = new Map(revenueTrendRaw.map((r) => [r._id, r]));
+  const revenueTrend = [];
+  for (let i = 0; i < days; i += 1) {
+    const d = new Date(since);
+    d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    const entry = revenueByDate.get(key);
+    revenueTrend.push({ date: key, revenue: entry?.revenue || 0, orders: entry?.orders || 0 });
+  }
+
+  const statusBreakdown = statusBreakdownRaw.map((s) => ({ status: s._id, count: s.count }));
+  const topProducts = topProductsRaw.map((p) => ({
+    productId: p._id,
+    name: p.name,
+    quantitySold: p.quantitySold,
+    revenue: p.revenue,
+  }));
+
+  res.json({ revenueTrend, statusBreakdown, topProducts });
+});
+
+module.exports = { getStats, getUsers, getChartData };

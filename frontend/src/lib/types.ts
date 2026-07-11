@@ -151,6 +151,21 @@ export type AdminStats = {
   totalRevenue: number;
 };
 
+export type RevenueTrendPoint = { date: string; revenue: number; orders: number };
+export type StatusBreakdownPoint = { status: Order["status"]; count: number };
+export type TopProductPoint = {
+  productId: string;
+  name: string;
+  quantitySold: number;
+  revenue: number;
+};
+
+export type AdminChartData = {
+  revenueTrend: RevenueTrendPoint[];
+  statusBreakdown: StatusBreakdownPoint[];
+  topProducts: TopProductPoint[];
+};
+
 export type SiteSettings = {
   _id?: string;
   heroImage: string;

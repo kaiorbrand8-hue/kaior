@@ -1,4 +1,5 @@
 import type {
+  AdminChartData,
   AdminReviewEntry,
   AdminStats,
   AdminUserEntry,
@@ -180,6 +181,9 @@ export const updateOrderStatus = (id: string, status: string) =>
 
 // ---- Admin ----
 export const getAdminStats = () => apiFetch<AdminStats>("/admin/stats", { auth: true });
+
+export const getAdminChartData = (days = 30) =>
+  apiFetch<AdminChartData>(`/admin/stats/charts?days=${days}`, { auth: true });
 
 export const getUsers = (query: { keyword?: string; page?: number; limit?: number } = {}) => {
   const params = new URLSearchParams();
