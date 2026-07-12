@@ -42,7 +42,7 @@ export default function AdminOrdersPage() {
       locale: "ar",
       customerName: order.shippingAddress.fullName,
       orderNumber: order.orderNumber,
-      remainingBalance: order.totalPrice - order.depositAmount,
+      remainingBalance: order.totalPrice - (order.depositAmount || 0),
     });
     window.open(buildWhatsAppLink(order.shippingAddress.phone, message), "_blank");
     load();
@@ -147,7 +147,7 @@ export default function AdminOrdersPage() {
                     </p>
                     <p className="text-xs text-charcoal/60">
                       Deposit ({paymentMethodLabel(order.paymentMethod, "en")}): EGP{" "}
-                      {order.depositAmount.toLocaleString()}
+                      {(order.depositAmount || 0).toLocaleString()}
                       {order.isPaid ? " · Received" : " · Awaiting"}
                     </p>
                   </div>

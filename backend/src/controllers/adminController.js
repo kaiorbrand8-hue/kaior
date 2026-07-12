@@ -9,9 +9,10 @@ function escapeRegex(str) {
 
 // @route GET /api/admin/stats
 const getStats = asyncHandler(async (req, res) => {
-  const [totalOrders, totalProducts, totalCustomers, revenueAgg, pendingOrders, pendingReviewsAgg] =
+  const [totalOrders, totalProducts, totalCustomers, revenueAgg, pendingOrders, confirmedOrders, pendingReviewsAgg] =
     await Promise.all([
-      Order.countDocuments({}),
+      // Cancelled orders don't count as real orders received.
+      Order.countDocuments({ status: { $ne: 'cancelled' } }),
       Product.countDocuments({}),
       User.countDocuments({ role: 'customer' }),
       Order.aggregate([
@@ -19,6 +20,7 @@ const getStats = asyncHandler(async (req, res) => {
         { $group: { _id: null, total: { $sum: '$totalPrice' } } },
       ]),
       Order.countDocuments({ status: 'pending' }),
+      Order.countDocuments({ status: { $in: ['confirmed', 'shipped', 'delivered'] } }),
       Product.aggregate([
         { $unwind: '$reviews' },
         { $match: { 'reviews.status': 'pending' } },
@@ -31,6 +33,7 @@ const getStats = asyncHandler(async (req, res) => {
     totalProducts,
     totalCustomers,
     pendingOrders,
+    confirmedOrders,
     pendingReviews: pendingReviewsAgg[0]?.count || 0,
     totalRevenue: revenueAgg[0]?.total || 0,
   });

@@ -8,9 +8,11 @@ export function calculateDeposit(total: number): number {
   return Math.ceil(total / 2);
 }
 
-export function paymentMethodLabel(method: PaymentMethod, locale: "en" | "ar"): string {
+export function paymentMethodLabel(method: string, locale: "en" | "ar"): string {
   if (method === "instapay") return locale === "ar" ? "إنستاباي" : "InstaPay";
-  return locale === "ar" ? "فودافون كاش" : "Vodafone Cash";
+  if (method === "vodafone_cash") return locale === "ar" ? "فودافون كاش" : "Vodafone Cash";
+  // Legacy orders placed before this payment method existed.
+  return locale === "ar" ? "الدفع عند الاستلام" : "Cash on Delivery";
 }
 
 export function buildOrderWhatsAppMessage({

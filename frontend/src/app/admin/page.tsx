@@ -10,6 +10,7 @@ const CARDS: { key: keyof AdminStats; label: string; href?: string; format?: (v:
   { key: "totalRevenue", label: "Total Revenue", format: (v) => `EGP ${v.toLocaleString()}` },
   { key: "totalOrders", label: "Total Orders", href: "/admin/orders" },
   { key: "pendingOrders", label: "Pending Orders", href: "/admin/orders" },
+  { key: "confirmedOrders", label: "Confirmed Orders", href: "/admin/orders" },
   { key: "pendingReviews", label: "Pending Reviews", href: "/admin/reviews" },
   { key: "totalProducts", label: "Products", href: "/admin/products" },
   { key: "totalCustomers", label: "Customers", href: "/admin/customers" },

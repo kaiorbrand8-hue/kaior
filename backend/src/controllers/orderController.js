@@ -109,21 +109,34 @@ const getAllOrders = asyncHandler(async (req, res) => {
   res.json({ items, page: pageNum, pages: Math.ceil(total / limitNum) || 1, total });
 });
 
+const ORDER_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+
 // @route PUT /api/orders/:id/status (admin)
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
+
+  if (!ORDER_STATUSES.includes(status)) {
+    res.status(400);
+    throw new Error('Invalid status');
+  }
+
   const order = await Order.findById(req.params.id);
   if (!order) {
     res.status(404);
     throw new Error('Order not found');
   }
-  order.status = status;
-  if (status === 'delivered') order.deliveredAt = new Date();
+
+  const update = { status };
+  if (status === 'delivered') update.deliveredAt = new Date();
   if (status === 'confirmed' && !order.isPaid) {
-    order.isPaid = true;
-    order.paidAt = new Date();
+    update.isPaid = true;
+    update.paidAt = new Date();
   }
-  const updated = await order.save();
+
+  // Targeted update instead of order.save() — save() re-validates the whole
+  // document, which breaks status changes on orders placed under an older
+  // schema (e.g. paymentMethod: 'cod' before it was removed as an option).
+  const updated = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
   res.json(updated);
 });
 

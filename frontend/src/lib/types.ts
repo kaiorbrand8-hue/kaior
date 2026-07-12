@@ -148,6 +148,7 @@ export type AdminStats = {
   totalProducts: number;
   totalCustomers: number;
   pendingOrders: number;
+  confirmedOrders: number;
   pendingReviews: number;
   totalRevenue: number;
 };

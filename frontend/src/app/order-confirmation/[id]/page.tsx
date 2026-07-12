@@ -88,7 +88,7 @@ export default function OrderConfirmationPage() {
         <p className="mt-1 text-sm text-charcoal/70">
           {t("checkout.minDeposit")}{" "}
           <span className="font-semibold text-navy-900">
-            {t("common.egp")} {order.depositAmount.toLocaleString()}
+            {t("common.egp")} {(order.depositAmount || 0).toLocaleString()}
           </span>
         </p>
         <a
@@ -98,7 +98,7 @@ export default function OrderConfirmationPage() {
               locale,
               orderNumber: order.orderNumber,
               totalPrice: order.totalPrice,
-              depositAmount: order.depositAmount,
+              depositAmount: order.depositAmount || 0,
               paymentMethod: order.paymentMethod,
             })
           )}
