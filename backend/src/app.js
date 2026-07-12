@@ -16,7 +16,15 @@ const settingsRoutes = require('./routes/settingsRoutes');
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
+// CLIENT_URL supports a comma-separated list so the API can serve requests
+// from multiple frontend origins at once (custom domain, www, and the
+// fallback *.vercel.app URL) without redeploying every time one changes.
+const allowedOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : '*' }));
 app.use(express.json());
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
