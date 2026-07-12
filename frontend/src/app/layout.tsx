@@ -26,6 +26,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://kaiorshope.com"),
   title: "KAIOR — Men's Wear",
   description:
     "KAIOR Men's Wear — tailored, timeless menswear essentials. Sharp fits, premium fabrics, effortless elegance.",
