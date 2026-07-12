@@ -34,6 +34,9 @@ export const metadata: Metadata = {
     title: "KAIOR",
     statusBarStyle: "black-translucent",
   },
+  verification: {
+    google: "PBa2_9ieyegTn-wIvkWuJNrEtUn1nxkGMgIxqHAREjg",
+  },
 };
 
 export const viewport: Viewport = {
