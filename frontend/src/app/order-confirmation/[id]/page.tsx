@@ -7,6 +7,12 @@ import { useLanguage } from "@/context/LanguageContext";
 import { translateColor } from "@/lib/i18n/colors";
 import { getOrderById, ApiError } from "@/lib/api";
 import type { Order } from "@/lib/types";
+import {
+  PAYMENT_NUMBER,
+  paymentMethodLabel,
+  buildOrderWhatsAppMessage,
+  buildWhatsAppLink,
+} from "@/lib/payment";
 
 export default function OrderConfirmationPage() {
   const { id } = useParams<{ id: string }>();
@@ -59,11 +65,49 @@ export default function OrderConfirmationPage() {
           ))}
         </div>
         <div className="mt-4 flex justify-between border-t border-navy-900/10 pt-4 text-base font-medium text-navy-900">
-          <span>{t("orderConfirmation.totalCod")}</span>
+          <span>{t("orderConfirmation.total")}</span>
           <span>
             {t("common.egp")} {order.totalPrice.toLocaleString()}
           </span>
         </div>
+      </div>
+
+      <div className="mt-6 border border-gold-500/40 bg-cream p-6 text-start">
+        <h2 className="text-sm font-semibold uppercase tracking-widest-lg text-navy-900">
+          {t("orderConfirmation.paymentTitle")}
+        </h2>
+        <p className="mt-2 text-sm text-charcoal/70">
+          {t("orderConfirmation.paymentInstructions").replace(
+            "{method}",
+            paymentMethodLabel(order.paymentMethod, locale)
+          )}
+        </p>
+        <p className="mt-2 text-sm text-charcoal/70">
+          {t("checkout.transferTo")} <span className="font-semibold text-navy-900">{PAYMENT_NUMBER}</span>
+        </p>
+        <p className="mt-1 text-sm text-charcoal/70">
+          {t("checkout.minDeposit")}{" "}
+          <span className="font-semibold text-navy-900">
+            {t("common.egp")} {order.depositAmount.toLocaleString()}
+          </span>
+        </p>
+        <a
+          href={buildWhatsAppLink(
+            PAYMENT_NUMBER,
+            buildOrderWhatsAppMessage({
+              locale,
+              orderNumber: order.orderNumber,
+              totalPrice: order.totalPrice,
+              depositAmount: order.depositAmount,
+              paymentMethod: order.paymentMethod,
+            })
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex items-center gap-2 bg-[#25D366] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1fb959]"
+        >
+          {t("orderConfirmation.sendProof")}
+        </a>
       </div>
 
       <div className="mt-10 flex flex-wrap justify-center gap-4">

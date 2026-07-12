@@ -32,10 +32,11 @@ const orderSchema = new mongoose.Schema(
     orderNumber: { type: String, unique: true },
     items: { type: [orderItemSchema], required: true },
     shippingAddress: { type: shippingAddressSchema, required: true },
-    paymentMethod: { type: String, enum: ['cod'], default: 'cod' },
+    paymentMethod: { type: String, enum: ['instapay', 'vodafone_cash'], required: true },
     itemsPrice: { type: Number, required: true, default: 0 },
     shippingPrice: { type: Number, required: true, default: 0 },
     totalPrice: { type: Number, required: true, default: 0 },
+    depositAmount: { type: Number, required: true, default: 0 },
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAllOrders, updateOrderStatus } from "@/lib/api";
 import type { Order } from "@/lib/types";
+import { buildApprovalWhatsAppMessage, buildWhatsAppLink, paymentMethodLabel } from "@/lib/payment";
 
 const STATUSES: Order["status"][] = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
 
@@ -32,6 +33,18 @@ export default function AdminOrdersPage() {
       return;
     }
     await updateOrderStatus(order._id, "cancelled");
+    load();
+  };
+
+  const handleApprove = async (order: Order) => {
+    await updateOrderStatus(order._id, "confirmed");
+    const message = buildApprovalWhatsAppMessage({
+      locale: "ar",
+      customerName: order.shippingAddress.fullName,
+      orderNumber: order.orderNumber,
+      remainingBalance: order.totalPrice - order.depositAmount,
+    });
+    window.open(buildWhatsAppLink(order.shippingAddress.phone, message), "_blank");
     load();
   };
 
@@ -103,7 +116,7 @@ export default function AdminOrdersPage() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <Link
                       href={`/admin/orders/${order._id}/waybill`}
                       target="_blank"
@@ -111,6 +124,14 @@ export default function AdminOrdersPage() {
                     >
                       Print Waybill
                     </Link>
+                    {order.status === "pending" && (
+                      <button
+                        onClick={() => handleApprove(order)}
+                        className="border border-[#25D366] px-4 py-1.5 text-xs uppercase tracking-widest-lg text-[#1a8a45] hover:bg-[#25D366] hover:text-white"
+                      >
+                        Approve &amp; Notify on WhatsApp
+                      </button>
+                    )}
                     {order.status !== "cancelled" && order.status !== "delivered" && (
                       <button
                         onClick={() => handleCancel(order)}
@@ -120,8 +141,15 @@ export default function AdminOrdersPage() {
                       </button>
                     )}
                   </div>
-                  <div className="text-sm font-medium text-navy-900">
-                    Total: EGP {order.totalPrice.toLocaleString()} (COD)
+                  <div className="text-end text-sm">
+                    <p className="font-medium text-navy-900">
+                      Total: EGP {order.totalPrice.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-charcoal/60">
+                      Deposit ({paymentMethodLabel(order.paymentMethod, "en")}): EGP{" "}
+                      {order.depositAmount.toLocaleString()}
+                      {order.isPaid ? " · Received" : " · Awaiting"}
+                    </p>
                   </div>
                 </div>
               </div>

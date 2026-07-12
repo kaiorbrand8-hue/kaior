@@ -4,14 +4,20 @@ const Product = require('../models/Product');
 
 const SHIPPING_FLAT_RATE = 70;
 const FREE_SHIPPING_THRESHOLD = 2000;
+const PAYMENT_METHODS = ['instapay', 'vodafone_cash'];
 
 // @route POST /api/orders
 const createOrder = asyncHandler(async (req, res) => {
-  const { items, shippingAddress } = req.body;
+  const { items, shippingAddress, paymentMethod } = req.body;
 
   if (!items || items.length === 0) {
     res.status(400);
     throw new Error('No order items');
+  }
+
+  if (!PAYMENT_METHODS.includes(paymentMethod)) {
+    res.status(400);
+    throw new Error('Invalid payment method');
   }
 
   const productIds = items.map((i) => i.product);
@@ -39,15 +45,17 @@ const createOrder = asyncHandler(async (req, res) => {
 
   const shippingPrice = itemsPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FLAT_RATE;
   const totalPrice = itemsPrice + shippingPrice;
+  const depositAmount = Math.ceil(totalPrice / 2);
 
   const order = await Order.create({
     user: req.user._id,
     items: orderItems,
     shippingAddress,
-    paymentMethod: 'cod',
+    paymentMethod,
     itemsPrice,
     shippingPrice,
     totalPrice,
+    depositAmount,
   });
 
   res.status(201).json(order);
@@ -111,6 +119,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   }
   order.status = status;
   if (status === 'delivered') order.deliveredAt = new Date();
+  if (status === 'confirmed' && !order.isPaid) {
+    order.isPaid = true;
+    order.paidAt = new Date();
+  }
   const updated = await order.save();
   res.json(updated);
 });

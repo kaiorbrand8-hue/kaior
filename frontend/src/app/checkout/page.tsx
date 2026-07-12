@@ -8,6 +8,14 @@ import { useCart } from "@/context/CartContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { translateColor } from "@/lib/i18n/colors";
 import { createOrder, ApiError } from "@/lib/api";
+import {
+  PAYMENT_NUMBER,
+  calculateDeposit,
+  paymentMethodLabel,
+  buildOrderWhatsAppMessage,
+  buildWhatsAppLink,
+  type PaymentMethod,
+} from "@/lib/payment";
 
 type FormState = {
   fullName: string;
@@ -36,6 +44,7 @@ export default function CheckoutPage() {
   const { locale, t } = useLanguage();
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("instapay");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -75,6 +84,9 @@ export default function CheckoutPage() {
     e.preventDefault();
     setSubmitting(true);
     setError("");
+    // Open the tab synchronously (within the click's call stack) so browsers
+    // don't treat it as an unrequested popup once the async order call resolves.
+    const whatsappTab = window.open("", "_blank");
     try {
       const order = await createOrder({
         items: items.map((i) => ({
@@ -84,15 +96,27 @@ export default function CheckoutPage() {
           color: i.color,
         })),
         shippingAddress: form,
+        paymentMethod,
       });
+      const message = buildOrderWhatsAppMessage({
+        locale,
+        orderNumber: order.orderNumber,
+        totalPrice: order.totalPrice,
+        depositAmount: order.depositAmount,
+        paymentMethod: order.paymentMethod,
+      });
+      if (whatsappTab) whatsappTab.location.href = buildWhatsAppLink(PAYMENT_NUMBER, message);
       clearCart();
       router.push(`/order-confirmation/${order._id}`);
     } catch (err) {
+      whatsappTab?.close();
       setError(err instanceof ApiError ? err.message : "Failed to place order");
     } finally {
       setSubmitting(false);
     }
   };
+
+  const deposit = calculateDeposit(total);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
@@ -125,9 +149,46 @@ export default function CheckoutPage() {
             />
           </div>
 
-          <div className="border border-navy-900/10 bg-cream p-4">
-            <p className="text-sm font-medium text-navy-900">{t("checkout.paymentMethod")}</p>
-            <p className="mt-1 text-sm text-charcoal/60">{t("checkout.cod")}</p>
+          <div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-widest-lg text-navy-900">
+              {t("checkout.paymentMethod")}
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {(["instapay", "vodafone_cash"] as PaymentMethod[]).map((method) => (
+                <button
+                  key={method}
+                  type="button"
+                  onClick={() => setPaymentMethod(method)}
+                  className={`border p-4 text-start transition-colors ${
+                    paymentMethod === method
+                      ? "border-gold-500 bg-cream"
+                      : "border-navy-900/15 hover:border-navy-900/30"
+                  }`}
+                >
+                  <span className="flex items-center gap-2 text-sm font-medium text-navy-900">
+                    <span
+                      className={`h-3.5 w-3.5 shrink-0 rounded-full border ${
+                        paymentMethod === method ? "border-gold-500 bg-gold-500" : "border-navy-900/30"
+                      }`}
+                    />
+                    {paymentMethodLabel(method, locale)}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-3 border border-navy-900/10 bg-cream p-4 text-sm">
+              <p className="text-navy-900">
+                {t("checkout.transferTo")} <span className="font-semibold">{PAYMENT_NUMBER}</span>
+              </p>
+              <p className="mt-1 text-charcoal/70">
+                {t("checkout.minDeposit")}{" "}
+                <span className="font-semibold text-navy-900">
+                  {t("common.egp")} {deposit.toLocaleString()}
+                </span>
+              </p>
+              <p className="mt-2 text-xs text-charcoal/60">{t("checkout.whatsappNote")}</p>
+            </div>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}

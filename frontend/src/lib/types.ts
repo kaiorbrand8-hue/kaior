@@ -133,10 +133,11 @@ export type Order = {
   user: string | { _id: string; name: string; email: string };
   items: OrderItem[];
   shippingAddress: Address;
-  paymentMethod: "cod";
+  paymentMethod: "instapay" | "vodafone_cash";
   itemsPrice: number;
   shippingPrice: number;
   totalPrice: number;
+  depositAmount: number;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
   isPaid: boolean;
   createdAt: string;

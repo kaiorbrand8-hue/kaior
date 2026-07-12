@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getOrderById, ApiError } from "@/lib/api";
 import type { Order } from "@/lib/types";
+import { paymentMethodLabel } from "@/lib/payment";
 
 const SENDER = {
   name: "KAIOR Men's Wear",
@@ -106,7 +107,7 @@ export default function WaybillPage() {
       </table>
 
       <div className="mt-4 flex justify-end">
-        <div className="w-64 space-y-1 text-sm">
+        <div className="w-72 space-y-1 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span>EGP {order.itemsPrice.toLocaleString()}</span>
@@ -115,9 +116,17 @@ export default function WaybillPage() {
             <span>Shipping</span>
             <span>{order.shippingPrice === 0 ? "Free" : `EGP ${order.shippingPrice.toLocaleString()}`}</span>
           </div>
-          <div className="flex justify-between border-t-2 border-navy-900 pt-1 text-base font-semibold text-navy-900">
-            <span>Amount to Collect (COD)</span>
+          <div className="flex justify-between border-t border-navy-900/20 pt-1">
+            <span>Total Order Value</span>
             <span>EGP {order.totalPrice.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-charcoal/70">
+            <span>Deposit Paid ({paymentMethodLabel(order.paymentMethod, "en")})</span>
+            <span>- EGP {order.depositAmount.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between border-t-2 border-navy-900 pt-1 text-base font-semibold text-navy-900">
+            <span>Amount to Collect on Delivery</span>
+            <span>EGP {(order.totalPrice - order.depositAmount).toLocaleString()}</span>
           </div>
         </div>
       </div>
