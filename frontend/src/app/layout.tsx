@@ -55,6 +55,22 @@ try {
 } catch (e) {}
 `;
 
+// Tells Google this domain is the official site for the KAIOR brand, and
+// links it to our social profiles — helps brand-name searches ("kaior")
+// resolve to this site instead of unrelated results.
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "KAIOR",
+  url: "https://kaiorshope.com",
+  logo: "https://kaiorshope.com/icon-512.png",
+  sameAs: [
+    process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+    process.env.NEXT_PUBLIC_FACEBOOK_URL,
+    process.env.NEXT_PUBLIC_TIKTOK_URL,
+  ].filter(Boolean),
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -71,6 +87,10 @@ export default async function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: setInitialDirScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-ivory text-charcoal">
         <Providers>
