@@ -5,6 +5,7 @@ const Product = require('../models/Product');
 const SHIPPING_FLAT_RATE = 70;
 const FREE_SHIPPING_THRESHOLD = 2000;
 const PAYMENT_METHODS = ['instapay', 'vodafone_cash'];
+const ORDER_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 
 // @route POST /api/orders
 const createOrder = asyncHandler(async (req, res) => {
@@ -86,9 +87,9 @@ const getOrderById = asyncHandler(async (req, res) => {
 const getAllOrders = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
   const filter = {};
-  if (status) {
+  if (status && ORDER_STATUSES.includes(status)) {
     filter.status = status;
-  } else {
+  } else if (!status) {
     // Default view hides cancelled orders so they don't clutter the active
     // list; pick "Cancelled" from the status filter to see them.
     filter.status = { $ne: 'cancelled' };
@@ -108,8 +109,6 @@ const getAllOrders = asyncHandler(async (req, res) => {
 
   res.json({ items, page: pageNum, pages: Math.ceil(total / limitNum) || 1, total });
 });
-
-const ORDER_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 
 // @route PUT /api/orders/:id/status (admin)
 const updateOrderStatus = asyncHandler(async (req, res) => {

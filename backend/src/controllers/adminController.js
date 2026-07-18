@@ -44,7 +44,7 @@ const getUsers = asyncHandler(async (req, res) => {
   const { keyword, page = 1, limit = 20 } = req.query;
 
   const filter = {};
-  if (keyword) {
+  if (keyword && typeof keyword === 'string') {
     const regex = new RegExp(escapeRegex(keyword.trim()), 'i');
     filter.$or = [{ name: regex }, { email: regex }, { phone: regex }];
   }

@@ -2,15 +2,18 @@ const asyncHandler = require('express-async-handler');
 const Product = require('../models/Product');
 const recomputeRating = require('../utils/recomputeRating');
 
+const REVIEW_STATUSES = ['pending', 'approved', 'rejected'];
+
 // @route GET /api/admin/reviews (admin)
 const getAllReviews = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
   const pageNum = Math.max(Number(page), 1);
   const limitNum = Math.min(Math.max(Number(limit), 1), 100);
+  const statusFilter = REVIEW_STATUSES.includes(status) ? status : null;
 
   const pipeline = [
     { $unwind: '$reviews' },
-    ...(status ? [{ $match: { 'reviews.status': status } }] : []),
+    ...(statusFilter ? [{ $match: { 'reviews.status': statusFilter } }] : []),
     { $sort: { 'reviews.createdAt': -1 } },
     {
       $facet: {
@@ -42,7 +45,7 @@ const getAllReviews = asyncHandler(async (req, res) => {
 // @route PUT /api/admin/reviews/:productId/:reviewId (admin)
 const updateReviewStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
-  if (!['pending', 'approved', 'rejected'].includes(status)) {
+  if (!REVIEW_STATUSES.includes(status)) {
     res.status(400);
     throw new Error('Invalid status');
   }

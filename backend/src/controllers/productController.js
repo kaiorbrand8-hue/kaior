@@ -29,12 +29,12 @@ const getProducts = asyncHandler(async (req, res) => {
     filter.active = true;
   }
 
-  if (keyword) {
+  if (keyword && typeof keyword === 'string') {
     const regex = new RegExp(escapeRegex(keyword.trim()), 'i');
     filter.$or = [{ name: regex }, { nameAr: regex }, { tags: regex }];
   }
 
-  if (category) {
+  if (category && typeof category === 'string') {
     const cat = await Category.findOne({ slug: category });
     if (cat) filter.category = cat._id;
     else filter.category = null;
@@ -46,8 +46,8 @@ const getProducts = asyncHandler(async (req, res) => {
     if (maxPrice) filter.price.$lte = Number(maxPrice);
   }
 
-  if (size) filter.sizes = size;
-  if (color) filter.colors = color;
+  if (size && typeof size === 'string') filter.sizes = size;
+  if (color && typeof color === 'string') filter.colors = color;
   if (featured === 'true') filter.featured = true;
   if (isNewArrival === 'true') filter.isNewArrival = true;
 
@@ -109,9 +109,19 @@ const getProductById = asyncHandler(async (req, res) => {
   res.json(product);
 });
 
+// Reviews, rating and stock are computed by the app (from customer reviews /
+// variant stock), never set directly from an admin form payload.
+const SYSTEM_OWNED_PRODUCT_FIELDS = ['reviews', 'rating', 'numReviews', 'totalStock', 'slug'];
+
+function stripSystemOwnedFields(body) {
+  const clean = { ...body };
+  SYSTEM_OWNED_PRODUCT_FIELDS.forEach((field) => delete clean[field]);
+  return clean;
+}
+
 // @route POST /api/products (admin)
 const createProduct = asyncHandler(async (req, res) => {
-  const product = await Product.create(req.body);
+  const product = await Product.create(stripSystemOwnedFields(req.body));
   res.status(201).json(product);
 });
 
@@ -122,7 +132,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Product not found');
   }
-  Object.assign(product, req.body);
+  Object.assign(product, stripSystemOwnedFields(req.body));
   const updated = await product.save();
   res.json(updated);
 });
