@@ -4,8 +4,14 @@ function notFound(req, res, next) {
 }
 
 function errorHandler(err, req, res, next) {
-  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  let statusCode = res.statusCode === 200 ? err.status || err.statusCode || 500 : res.statusCode;
   let message = err.message;
+
+  // Malformed JSON request bodies are a client error, not a server fault.
+  if (err.type === 'entity.parse.failed') {
+    statusCode = 400;
+    message = 'Malformed JSON in request body';
+  }
 
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
     statusCode = 404;

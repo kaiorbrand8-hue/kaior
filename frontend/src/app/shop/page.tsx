@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { getCategories, getProducts } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import Filters from "@/components/shop/Filters";
@@ -14,6 +15,24 @@ type SearchParams = {
   page?: string;
   isNewArrival?: string;
 };
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}): Promise<Metadata> {
+  const { keyword } = await searchParams;
+  if (keyword) {
+    return {
+      title: `Search: ${keyword} — KAIOR Men's Wear`,
+      description: `Results for "${keyword}" at KAIOR — tailored menswear essentials.`,
+    };
+  }
+  return {
+    title: "Shop All Products — KAIOR Men's Wear",
+    description: "Browse the full KAIOR menswear collection — shirts, suits, knitwear and more.",
+  };
+}
 
 export default async function ShopPage({
   searchParams,

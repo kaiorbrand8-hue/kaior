@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCategories, getCategoryBySlug, getProducts } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 import Filters from "@/components/shop/Filters";
@@ -8,6 +9,22 @@ import CategoryHeading from "@/components/shop/CategoryHeading";
 import CategoryEmptyState from "@/components/shop/CategoryEmptyState";
 
 type SearchParams = { size?: string; sort?: string; page?: string };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const category = await getCategoryBySlug(slug).catch(() => null);
+  if (!category) return { title: "Category Not Found — KAIOR" };
+  return {
+    title: `${category.name} — KAIOR Men's Wear`,
+    description:
+      category.description ||
+      `Shop ${category.name} at KAIOR — tailored menswear essentials, sharp fits and premium fabrics.`,
+  };
+}
 
 export default async function CategoryPage({
   params,

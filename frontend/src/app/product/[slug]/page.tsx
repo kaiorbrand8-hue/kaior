@@ -12,9 +12,22 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug).catch(() => null);
   if (!product) return { title: "Product Not Found — KAIOR" };
+  const title = `${product.name} — KAIOR`;
+  const description = product.shortDescription || product.description;
   return {
-    title: `${product.name} — KAIOR`,
-    description: product.shortDescription || product.description,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: product.images[0] ? [{ url: product.images[0] }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: product.images[0] ? [product.images[0]] : undefined,
+    },
   };
 }
 

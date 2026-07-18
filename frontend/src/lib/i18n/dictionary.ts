@@ -149,6 +149,10 @@ export const dictionary = {
       sendProof: "Send Payment Screenshot on WhatsApp",
       viewOrders: "View My Orders",
       continueShopping: "Continue Shopping",
+      notFoundTitle: "We couldn't load this order",
+      notFoundTextGuest: "Log in to view your order confirmation.",
+      notFoundTextOther: "It may not exist, or belongs to a different account.",
+      logIn: "Log In",
     },
     auth: {
       welcomeBack: "Welcome Back",
@@ -336,6 +340,10 @@ export const dictionary = {
       sendProof: "ابعت إسكرين شوت التحويل على واتساب",
       viewOrders: "شاهد طلباتي",
       continueShopping: "أكمل التسوّق",
+      notFoundTitle: "مقدرناش نجيب تفاصيل الطلب ده",
+      notFoundTextGuest: "سجّل دخولك عشان تشوف تأكيد الطلب.",
+      notFoundTextOther: "ممكن يكون مش موجود، أو تابع لحساب تاني.",
+      logIn: "تسجيل الدخول",
     },
     auth: {
       welcomeBack: "أهلاً بعودتك",

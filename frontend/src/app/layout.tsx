@@ -25,17 +25,31 @@ const cairo = Cairo({
   weight: ["500", "600", "700"],
 });
 
+const description =
+  "KAIOR Men's Wear — tailored, timeless menswear essentials. Sharp fits, premium fabrics, effortless elegance.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://kaiorshope.com"),
   title: "KAIOR — Men's Wear",
-  description:
-    "KAIOR Men's Wear — tailored, timeless menswear essentials. Sharp fits, premium fabrics, effortless elegance.",
+  description,
   appleWebApp: {
     title: "KAIOR",
     statusBarStyle: "black-translucent",
   },
   verification: {
     google: "PBa2_9ieyegTn-wIvkWuJNrEtUn1nxkGMgIxqHAREjg",
+  },
+  openGraph: {
+    siteName: "KAIOR",
+    title: "KAIOR — Men's Wear",
+    description,
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "KAIOR — Men's Wear",
+    description,
   },
 };
 

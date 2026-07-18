@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { translateColor } from "@/lib/i18n/colors";
 import { getOrderById, ApiError } from "@/lib/api";
@@ -16,18 +17,43 @@ import {
 
 export default function OrderConfirmationPage() {
   const { id } = useParams<{ id: string }>();
+  const { user, loading: authLoading } = useAuth();
   const { locale, t } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ApiError | Error | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     getOrderById(id)
       .then(setOrder)
-      .catch((err) => setError(err instanceof ApiError ? err.message : "Could not load order"));
-  }, [id]);
+      .catch((err) => setError(err instanceof ApiError ? err : new Error("Could not load order")));
+  }, [id, authLoading]);
 
   if (error) {
-    return <div className="py-24 text-center text-sm text-red-600">{error}</div>;
+    return (
+      <div className="mx-auto max-w-md px-4 py-24 text-center sm:px-6 lg:px-8">
+        <h1 className="font-display text-2xl text-navy-900">{t("orderConfirmation.notFoundTitle")}</h1>
+        <p className="mt-3 text-sm text-charcoal/60">
+          {user ? t("orderConfirmation.notFoundTextOther") : t("orderConfirmation.notFoundTextGuest")}
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          {!user && (
+            <Link
+              href={`/login?redirect=/order-confirmation/${id}`}
+              className="border border-navy-900 bg-navy-900 px-8 py-3 text-sm uppercase tracking-widest-lg text-cream hover:bg-navy-800"
+            >
+              {t("orderConfirmation.logIn")}
+            </Link>
+          )}
+          <Link
+            href="/shop"
+            className="border border-navy-900/20 px-8 py-3 text-sm uppercase tracking-widest-lg text-navy-900 hover:border-navy-900"
+          >
+            {t("orderConfirmation.continueShopping")}
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (!order) {
