@@ -86,7 +86,7 @@ export default function SearchBox({ onClose }: { onClose: () => void }) {
                     >
                       <div className="relative h-12 w-10 shrink-0 overflow-hidden bg-navy-900">
                         {product.images[0] && (
-                          <Image src={product.images[0]} alt="" fill className="object-cover" />
+                          <Image src={product.images[0]} alt="" fill sizes="40px" className="object-cover" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">

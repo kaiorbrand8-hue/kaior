@@ -36,6 +36,7 @@ export default function Lookbook({
             src={mainImage || DEFAULT_LOOKBOOK_MAIN}
             alt="KAIOR lookbook"
             fill
+            sizes="(min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </Reveal>
@@ -48,6 +49,7 @@ export default function Lookbook({
             src={featureImage || DEFAULT_LOOKBOOK_FEATURE}
             alt=""
             fill
+            sizes="(min-width: 640px) 50vw, 100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/70 to-navy-950/30" />
@@ -63,6 +65,7 @@ export default function Lookbook({
             src={suitingImage || DEFAULT_LOOKBOOK_SUITING}
             alt="Suiting"
             fill
+            sizes="(min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </Reveal>
@@ -71,6 +74,7 @@ export default function Lookbook({
             src={knitwearImage || DEFAULT_LOOKBOOK_KNITWEAR}
             alt="Knitwear"
             fill
+            sizes="(min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </Reveal>

@@ -15,6 +15,7 @@ export default function Hero({ image }: { image?: string }) {
         alt="KAIOR Men's Wear"
         fill
         priority
+        sizes="100vw"
         className="hero-zoom object-cover opacity-70"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/40 to-navy-950/10" />

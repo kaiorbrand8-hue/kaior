@@ -46,7 +46,16 @@ export function getStoredUser(): User | null {
   }
 }
 
-type ApiFetchOptions = RequestInit & { auth?: boolean };
+type ApiFetchOptions = RequestInit & {
+  auth?: boolean;
+  // Opt-in seconds-based revalidation for cacheable public GET data
+  // (categories, product listings). Only has any effect when the fetch
+  // runs during Next.js server rendering — the browser ignores the `next`
+  // fetch extension entirely, so client-side calls (e.g. admin pages)
+  // always get a live request regardless of this option. Omit for
+  // anything per-user or that must always be fresh.
+  revalidate?: number;
+};
 
 export class ApiError extends Error {
   status: number;
@@ -57,7 +66,7 @@ export class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
-  const { auth, headers, ...rest } = options;
+  const { auth, headers, revalidate, ...rest } = options;
   const finalHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     ...(headers as Record<string, string>),
@@ -71,7 +80,7 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise
   const res = await fetch(`${API_URL}${path}`, {
     ...rest,
     headers: finalHeaders,
-    cache: "no-store",
+    ...(revalidate !== undefined ? { next: { revalidate } } : { cache: "no-store" }),
   });
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
@@ -85,9 +94,13 @@ async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise
 }
 
 // ---- Categories ----
-export const getCategories = () => apiFetch<Category[]>("/categories");
+// Categories change rarely (admin edits), so a short revalidation window
+// lets Next.js serve/dedupe repeated server-side requests for the same
+// data (root layout, home, shop, category, sitemap all request this)
+// instead of hitting the API fresh every single time.
+export const getCategories = () => apiFetch<Category[]>("/categories", { revalidate: 300 });
 export const getCategoryBySlug = (slug: string) =>
-  apiFetch<Category>(`/categories/${slug}`);
+  apiFetch<Category>(`/categories/${slug}`, { revalidate: 300 });
 export const createCategory = (payload: Partial<Category>) =>
   apiFetch<Category>("/categories", { method: "POST", body: JSON.stringify(payload), auth: true });
 export const updateCategory = (id: string, payload: Partial<Category>) =>
@@ -121,10 +134,14 @@ export const getProducts = (query: ProductQuery = {}) => {
   const qs = params.toString();
   return apiFetch<PaginatedProducts>(`/products${qs ? `?${qs}` : ""}`, {
     auth: !!query.includeInactive,
+    // Admin's inactive-product listing must always be live; the public
+    // catalog can tolerate a short cache window.
+    ...(query.includeInactive ? {} : { revalidate: 60 }),
   });
 };
 
-export const getProductBySlug = (slug: string) => apiFetch<Product>(`/products/${slug}`, { auth: true });
+export const getProductBySlug = (slug: string) =>
+  apiFetch<Product>(`/products/${slug}`, { auth: true, revalidate: 60 });
 export const getProductById = (id: string) => apiFetch<Product>(`/products/id/${id}`, { auth: true });
 export const createProduct = (payload: Partial<Product>) =>
   apiFetch<Product>("/products", { method: "POST", body: JSON.stringify(payload), auth: true });
@@ -222,7 +239,7 @@ export const deleteReview = (productId: string, reviewId: string) =>
   });
 
 // ---- Site Settings (homepage images) ----
-export const getSiteSettings = () => apiFetch<SiteSettings>("/settings");
+export const getSiteSettings = () => apiFetch<SiteSettings>("/settings", { revalidate: 60 });
 export const updateSiteSettings = (payload: Partial<SiteSettings>) =>
   apiFetch<SiteSettings>("/settings", { method: "PUT", body: JSON.stringify(payload), auth: true });
 

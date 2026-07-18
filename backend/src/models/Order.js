@@ -56,4 +56,11 @@ orderSchema.pre('validate', function setOrderNumber(next) {
   next();
 });
 
+// getMyOrders / getAllOrders both filter (user or status) and sort by
+// createdAt; the dashboard aggregations filter/group by status and
+// createdAt too. Without these, every one of those becomes a full
+// collection scan as orders accumulate.
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Order', orderSchema);

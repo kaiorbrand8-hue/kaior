@@ -92,6 +92,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                 alt={productName}
                 fill
                 priority
+                sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-cover"
               />
             )}
@@ -140,7 +141,13 @@ export default function ProductDetail({ product }: { product: Product }) {
                     activeImage === i ? "border-gold-500" : "border-transparent"
                   }`}
                 >
-                  <Image src={img} alt={`${productName} ${i + 1}`} fill className="object-cover" />
+                  <Image
+                    src={img}
+                    alt={`${productName} ${i + 1}`}
+                    fill
+                    sizes="(min-width: 1024px) 12vw, 22vw"
+                    className="object-cover"
+                  />
                 </button>
               ))}
             </div>
