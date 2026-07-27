@@ -1,7 +1,13 @@
+const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
+const { sendEmail } = require('../utils/sendEmail');
+
+function primaryClientUrl() {
+  return (process.env.CLIENT_URL || '').split(',')[0].trim() || 'http://localhost:3000';
+}
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -140,4 +146,91 @@ const addAddress = asyncHandler(async (req, res) => {
   res.status(201).json(user.addresses);
 });
 
-module.exports = { registerUser, loginUser, googleAuth, getMe, updateMe, addAddress };
+// @route POST /api/auth/forgot-password
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400);
+    throw new Error('Email is required');
+  }
+
+  // Same response whether or not the account exists, and whether it's a
+  // Google-only account with no password — never reveal which emails are
+  // registered.
+  const genericResponse = {
+    message: 'If an account with that email exists, a reset link has been sent.',
+  };
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user || !user.password) {
+    res.json(genericResponse);
+    return;
+  }
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  user.resetPasswordToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  await user.save();
+
+  const resetUrl = `${primaryClientUrl()}/reset-password/${rawToken}`;
+
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: 'Reset your KAIOR password',
+      html: `
+        <p>Hi ${user.name},</p>
+        <p>Click the link below to reset your KAIOR password. This link expires in 1 hour.</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+      `,
+    });
+  } catch (err) {
+    // Don't leave a dangling reset token if the email never went out.
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+    res.status(500);
+    throw new Error('Failed to send the reset email. Please try again later.');
+  }
+
+  res.json(genericResponse);
+});
+
+// @route POST /api/auth/reset-password
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    res.status(400);
+    throw new Error('Token and new password are required');
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  }).select('+resetPasswordToken +resetPasswordExpires');
+
+  if (!user) {
+    res.status(400);
+    throw new Error('This reset link is invalid or has expired');
+  }
+
+  user.password = password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  res.json({ message: 'Password updated. You can now log in.' });
+});
+
+module.exports = {
+  registerUser,
+  loginUser,
+  googleAuth,
+  getMe,
+  updateMe,
+  addAddress,
+  forgotPassword,
+  resetPassword,
+};

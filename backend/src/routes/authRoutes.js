@@ -7,6 +7,8 @@ const {
   getMe,
   updateMe,
   addAddress,
+  forgotPassword,
+  resetPassword,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -26,6 +28,8 @@ const authLimiter = rateLimit({
 router.post('/register', authLimiter, registerUser);
 router.post('/login', authLimiter, loginUser);
 router.post('/google', authLimiter, googleAuth);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/reset-password', authLimiter, resetPassword);
 router.get('/me', protect, getMe);
 router.put('/me', protect, updateMe);
 router.post('/me/addresses', protect, addAddress);

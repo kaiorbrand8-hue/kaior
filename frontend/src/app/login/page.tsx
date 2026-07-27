@@ -58,9 +58,14 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs uppercase tracking-wide text-charcoal/60">
-            {t("auth.password")}
-          </label>
+          <div className="mb-1 flex items-center justify-between">
+            <label className="block text-xs uppercase tracking-wide text-charcoal/60">
+              {t("auth.password")}
+            </label>
+            <Link href="/forgot-password" className="text-xs text-gold-600 underline">
+              {t("auth.forgotPassword")}
+            </Link>
+          </div>
           <input
             type="password"
             required

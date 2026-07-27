@@ -172,6 +172,16 @@ export const addAddress = (payload: Record<string, string>) =>
     body: JSON.stringify(payload),
     auth: true,
   });
+export const forgotPassword = (email: string) =>
+  apiFetch<{ message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+export const resetPassword = (token: string, password: string) =>
+  apiFetch<{ message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
 
 // ---- Orders ----
 export const createOrder = (payload: unknown) =>

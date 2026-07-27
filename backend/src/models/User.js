@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, trim: true },
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
     addresses: [addressSchema],
+    // Stores a hash of the reset token, never the raw token — matches how
+    // passwords themselves are never stored in plain text.
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
