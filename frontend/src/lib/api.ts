@@ -173,7 +173,7 @@ export const addAddress = (payload: Record<string, string>) =>
     auth: true,
   });
 export const forgotPassword = (email: string) =>
-  apiFetch<{ message: string }>("/auth/forgot-password", {
+  apiFetch<{ message: string; authMethod?: "google" }>("/auth/forgot-password", {
     method: "POST",
     body: JSON.stringify({ email }),
   });

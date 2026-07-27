@@ -154,16 +154,27 @@ const forgotPassword = asyncHandler(async (req, res) => {
     throw new Error('Email is required');
   }
 
-  // Same response whether or not the account exists, and whether it's a
-  // Google-only account with no password — never reveal which emails are
-  // registered.
+  // Same response for a nonexistent account either way — never reveal
+  // whether an email is registered at all.
   const genericResponse = {
     message: 'If an account with that email exists, a reset link has been sent.',
   };
 
   const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user || !user.password) {
+  if (!user) {
     res.json(genericResponse);
+    return;
+  }
+
+  // A Google-only account has no password to reset. Naming this case
+  // explicitly is a minor, common trade-off (confirms the email is
+  // registered) in exchange for not leaving the user stuck wondering why
+  // no email ever arrives.
+  if (!user.password) {
+    res.json({
+      message: 'This account signs in with Google. Use "Continue with Google" on the login page instead.',
+      authMethod: 'google',
+    });
     return;
   }
 

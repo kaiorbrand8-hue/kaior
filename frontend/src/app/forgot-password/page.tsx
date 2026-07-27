@@ -11,13 +11,15 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isGoogleAccount, setIsGoogleAccount] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      await forgotPassword(email);
+      const result = await forgotPassword(email);
+      setIsGoogleAccount(result.authMethod === "google");
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
@@ -34,9 +36,19 @@ export default function ForgotPasswordPage() {
       <p className="mt-2 text-center text-sm text-charcoal/60">{t("auth.forgotPasswordSubtitle")}</p>
 
       {submitted ? (
-        <p className="mt-10 text-center text-sm font-medium text-gold-600">
-          {t("auth.forgotPasswordSent")}
-        </p>
+        <div className="mt-10 text-center">
+          <p className="text-sm font-medium text-gold-600">
+            {isGoogleAccount ? t("auth.forgotPasswordGoogleAccount") : t("auth.forgotPasswordSent")}
+          </p>
+          {isGoogleAccount && (
+            <Link
+              href="/login"
+              className="mt-6 inline-block border border-navy-900 bg-navy-900 px-8 py-3 text-sm uppercase tracking-widest-lg text-cream hover:bg-navy-800"
+            >
+              {t("auth.backToLogin")}
+            </Link>
+          )}
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="mt-10 space-y-4">
           <div>
@@ -64,11 +76,13 @@ export default function ForgotPasswordPage() {
         </form>
       )}
 
-      <p className="mt-6 text-center text-sm text-charcoal/60">
-        <Link href="/login" className="text-gold-600 underline">
-          {t("auth.backToLogin")}
-        </Link>
-      </p>
+      {!(submitted && isGoogleAccount) && (
+        <p className="mt-6 text-center text-sm text-charcoal/60">
+          <Link href="/login" className="text-gold-600 underline">
+            {t("auth.backToLogin")}
+          </Link>
+        </p>
+      )}
     </div>
   );
 }
